@@ -20,9 +20,9 @@ struct Trade {
 	bool buy_side;
 };
 
-
 int create_database_header(int fd, struct DatabaseHeader **header_out);
 int validate_database_header(int fd, struct DatabaseHeader **header_out);
+int serialize_header(int fd, struct DatabaseHeader *header);
 int read_trades(int fd, struct DatabaseHeader *, struct Trade **trades_out);
 
 #endif

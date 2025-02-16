@@ -60,13 +60,33 @@ int main(int argc, char *argv[]) {
 			return STATUS_ERROR;
 		}
 
+		if (serialize_header(fd, header) == STATUS_ERROR) {
+			printf("Failed to serialize header to file.\n");
+			return STATUS_ERROR;
+		}
+
+		close(fd);
+		printf("Created new database file '%s'.\n", DEFAULT_DB_FILENAME);
+
 	} else {
 		int fd = open_database_file(filepath);
 		if (fd == STATUS_ERROR) {
 			printf("Unable to open database file.\n");
 			return STATUS_ERROR;
 		}
+
+		if (validate_database_header(fd, &header) == STATUS_ERROR) {
+			printf("Header validation failed.\n");
+			return STATUS_ERROR;
+		};
+
+		if (serialize_header(fd, header) == STATUS_ERROR) {
+			printf("Failed to serialize header to file.\n");
+			return STATUS_ERROR;
+		}
+
+		close(fd);
 	}
 
-	return 0;
+	return STATUS_SUCCESS;
 }

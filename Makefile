@@ -4,6 +4,8 @@ OBJ = $(patsubst src/%.c, obj/%.o, $(SRC))
 
 run: clean default
 	./$(TARGET) -h
+	./$(TARGET) -n
+	./$(TARGET) -f portfolio.db
 
 default: $(TARGET)
 
