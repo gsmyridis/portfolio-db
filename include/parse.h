@@ -15,14 +15,14 @@ struct DatabaseHeader {
 struct Trade {
 	char ticker[10];
 	char date[10];
-	float amount;
-	float price;
+	int amount;
+	int price;
 	bool buy_side;
 };
 
 int create_database_header(int fd, struct DatabaseHeader **header_out);
 int validate_database_header(int fd, struct DatabaseHeader **header_out);
 int serialize_header(int fd, struct DatabaseHeader *header);
-int read_trades(int fd, struct DatabaseHeader *, struct Trade **trades_out);
+int read_trades(int fd, struct DatabaseHeader *header, struct Trade **trades_out);
 
 #endif

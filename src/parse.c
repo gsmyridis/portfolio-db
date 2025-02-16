@@ -10,18 +10,46 @@
 #include "parse.h"
 
 
+void network_to_host(struct Trade *trade) {
+	trade -> amount = ntohl(trade -> amount);
+	trade -> price = ntohl(trade -> price);
+}
+
+
+int read_trades(int fd, struct DatabaseHeader *header, struct Trade **trades_out) {
+	if (fd < 0) {
+		printf("Got a bad file-descriptor from the user.\n");
+		return STATUS_ERROR;
+	}
+
+	int count = header -> count;
+	struct Trade *trades = calloc(count, sizeof(struct Trade));
+	if (trades == NULL) {
+		printf("Failed to allocate memory for the trades.\n");
+		return STATUS_ERROR;
+	}
+
+	ssize_t trades_bytes = count * sizeof(struct Trade);
+	if (read(fd, trades, trades_bytes) < trades_bytes) {
+		printf("Failed to read all trades.\n");
+		return STATUS_ERROR;
+	}
+
+	for (int i = 0; i < count; i++) {
+		network_to_host(&trades[i]);
+	}
+
+	*trades_out = trades;
+
+	return STATUS_SUCCESS;
+	
+}
+
 void network_to_host_header(struct DatabaseHeader *header) {
 	header -> magic = ntohl(header -> magic);
 	header -> version = ntohs(header -> version);
 	header -> count = ntohs(header -> count);
 	header -> filesize = ntohl(header -> filesize);
-}
-
-void host_to_network_header(struct DatabaseHeader *header) {
-	header -> magic = htonl(header -> magic);
-	header -> version = htons(header -> version);
-	header -> count = htons(header -> count);
-	header -> filesize = htonl(header -> filesize);
 }
 
 int create_database_header(int fd, struct DatabaseHeader **header_out) {
@@ -91,6 +119,13 @@ int validate_database_header(int fd, struct DatabaseHeader **header_out) {
 	return STATUS_SUCCESS;
 }
 
+void host_to_network_header(struct DatabaseHeader *header) {
+	header -> magic = htonl(header -> magic);
+	header -> version = htons(header -> version);
+	header -> count = htons(header -> count);
+	header -> filesize = htonl(header -> filesize);
+}
+
 int serialize_header(int fd, struct DatabaseHeader *header) {
 	if (fd < 0) {
 		printf("Got a bad file descriptor from the user.\n");
@@ -111,3 +146,4 @@ int serialize_header(int fd, struct DatabaseHeader *header) {
 
 	return STATUS_SUCCESS;
 }
+

@@ -24,12 +24,14 @@ void print_help() {
 
 int main(int argc, char *argv[]) {
 
+	int fd = -1;
 	bool newfile = false;
 	char *filepath = NULL;
 	struct DatabaseHeader *header = NULL;
+	struct Trade *trades = NULL;
 
 	int opt;
-	while ((opt = getopt(argc, argv, "hnf:")) != -1 ) {
+	while ((opt = getopt(argc, argv, "hnf:a:")) != -1 ) {
 		switch (opt) {
 			case 'h':
 				print_help();
@@ -39,6 +41,9 @@ int main(int argc, char *argv[]) {
 				break;
 			case 'f':
 				filepath = optarg;
+				break;
+			case 'a':
+				printf("Adding %s\n", optarg);
 				break;
 			case '?':
 				printf("Unknown option");
@@ -65,7 +70,6 @@ int main(int argc, char *argv[]) {
 			return STATUS_ERROR;
 		}
 
-		close(fd);
 		printf("Created new database file '%s'.\n", DEFAULT_DB_FILENAME);
 
 	} else {
@@ -80,13 +84,12 @@ int main(int argc, char *argv[]) {
 			return STATUS_ERROR;
 		};
 
-		if (serialize_header(fd, header) == STATUS_ERROR) {
-			printf("Failed to serialize header to file.\n");
+		if (read_trades(fd, header, &trades) == STATUS_ERROR) {
+			printf("Failed to read trades from file.\n");
 			return STATUS_ERROR;
 		}
-
-		close(fd);
 	}
 
+	close(fd);
 	return STATUS_SUCCESS;
 }
