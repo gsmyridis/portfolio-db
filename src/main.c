@@ -2,6 +2,9 @@
 #include <getopt.h>
 #include <stdbool.h>
 
+#include "common.h"
+#include "file.h"
+
 void print_usage() {
 	printf("\nUSAGE:\n");
 	printf("\t-n\t   Creates a new database file.\n");
@@ -41,8 +44,19 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	printf("Newfile: %d\n", newfile);
-	printf("Filepath: %s\n", filepath);
+	if (newfile) {
+		int fd = create_database_file(DEFAULT_DB_FILENAME);
+		if (fd == STATUS_ERROR) {
+			printf("Unable to create database file.\n");
+			return STATUS_ERROR;
+		}
+	} else {
+		int fd = open_database_file(filepath);
+		if (fd == STATUS_ERROR) {
+			printf("Unable to open database file.\n");
+			return STATUS_ERROR;
+		}
+	}
 
 	return 0;
 }
