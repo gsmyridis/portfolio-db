@@ -4,6 +4,8 @@
 
 #include "common.h"
 #include "file.h"
+#include "parse.h"
+
 
 void print_usage() {
 	printf("\nUSAGE:\n");
@@ -11,6 +13,7 @@ void print_usage() {
 	printf("\t-f <PATH>  Loads an existing database file.\n");
 	printf("\n");
 }
+
 
 void print_help() {
 	printf("\nWelcome to Folio DB.\n");
@@ -23,6 +26,7 @@ int main(int argc, char *argv[]) {
 
 	bool newfile = false;
 	char *filepath = NULL;
+	struct DatabaseHeader *header = NULL;
 
 	int opt;
 	while ((opt = getopt(argc, argv, "hnf:")) != -1 ) {
@@ -50,6 +54,12 @@ int main(int argc, char *argv[]) {
 			printf("Unable to create database file.\n");
 			return STATUS_ERROR;
 		}
+
+		if (create_database_header(fd, &header) == STATUS_ERROR) {
+			printf("Failed to create database header.\n");
+			return STATUS_ERROR;
+		}
+
 	} else {
 		int fd = open_database_file(filepath);
 		if (fd == STATUS_ERROR) {
