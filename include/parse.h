@@ -23,7 +23,7 @@ struct Trade {
 void print_trade(struct Trade *trade);
 int parse_trade(char *s, struct Trade *trade);
 int create_database_header(int fd, struct DatabaseHeader **header_out);
-int validate_database_header(int fd, struct DatabaseHeader **header_out);
+int load_database_header(int fd, struct DatabaseHeader **header_out);
 int serialize_database(int fd, struct DatabaseHeader *header, struct Trade *trades);
 int read_trades(int fd, struct DatabaseHeader *header, struct Trade **trades_out);
 

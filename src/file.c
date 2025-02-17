@@ -7,7 +7,7 @@
 
 int create_database_file(char *path) {
 	if (open(path, O_RDONLY) != -1) {
-		printf("Error: File %s already exists.\n", path);
+		printf("ERROR: File %s already exists.\n", path);
 		return STATUS_ERROR;
 	}
 
