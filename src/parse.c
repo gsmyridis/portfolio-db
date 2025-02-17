@@ -5,9 +5,38 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
+#include <string.h>
 
 #include "common.h"
 #include "parse.h"
+
+
+int parse_trade(char *s, struct Trade *trade) {
+	char *ticker = strtok(s, DELIMETER);
+	char *date = strtok(NULL, DELIMETER);
+	char *amount = strtok(NULL, DELIMETER);
+	char *price = strtok(NULL, DELIMETER);
+	char *side = strtok(NULL, DELIMETER);
+
+	strncpy(trade -> ticker, ticker, sizeof(trade -> ticker));
+	strncpy(trade -> date, date, sizeof(trade -> date));
+	trade -> amount = atoi(amount);
+	trade -> price = atoi(price);
+	strncpy(trade -> side, side, sizeof(trade -> side));
+
+	return STATUS_SUCCESS;
+}
+
+void print_trade(struct Trade *trade) {
+	printf("%s %s %d %d %s\n", 
+		trade -> ticker, 
+		trade -> date, 
+		trade -> amount, 
+		trade -> price, 
+		trade -> side
+	);
+	return;
+}
 
 
 void network_to_host(struct Trade *trade) {
@@ -62,7 +91,7 @@ int create_database_header(int fd, struct DatabaseHeader **header_out) {
 
         header -> magic = HEADER_MAGIC;
 	header -> version = 0x1;
-	header -> count = 0;
+	header -> count = 0x0;
 	header -> filesize = sizeof(struct DatabaseHeader);
 
 	*header_out = header;
@@ -87,7 +116,6 @@ int validate_database_header(int fd, struct DatabaseHeader **header_out) {
 		free(header);
 		return STATUS_ERROR;
 	}
-
 	network_to_host_header(header);
 
 	if (header -> magic != HEADER_MAGIC) {
@@ -109,7 +137,7 @@ int validate_database_header(int fd, struct DatabaseHeader **header_out) {
 	}
 
 	if (header -> filesize != dbstat.st_size) {
-		printf("Corrupted database. The size on the header does not match the file size.\n");
+		printf("Corrupted database. The size on the header '%x' does not match the file size '%llx'.\n", header -> filesize, dbstat.st_size);
 		free(header);
 		return STATUS_ERROR;
 	}
@@ -126,11 +154,12 @@ void host_to_network_header(struct DatabaseHeader *header) {
 	header -> filesize = htonl(header -> filesize);
 }
 
-int serialize_header(int fd, struct DatabaseHeader *header) {
+int serialize_database(int fd, struct DatabaseHeader *header, struct Trade *trades) {
 	if (fd < 0) {
 		printf("Got a bad file descriptor from the user.\n");
 		return STATUS_ERROR;
 	}
+	ssize_t count = header -> count;
 
 	host_to_network_header(header);
 
@@ -142,6 +171,14 @@ int serialize_header(int fd, struct DatabaseHeader *header) {
 	if (write(fd, header, sizeof(struct DatabaseHeader)) != sizeof(struct DatabaseHeader)) {
 		printf("Failed to write all the bytes in the file");
 		return STATUS_ERROR;
+	}
+
+	for (int i = 0; i < count ; i++) {
+		printf("i = %d", i);
+		if(write(fd, &trades[i], sizeof(struct Trade)) < sizeof(struct Trade)) {
+			printf("Failed to write all trades into file.\n");
+			return STATUS_ERROR;
+		}
 	}
 
 	return STATUS_SUCCESS;

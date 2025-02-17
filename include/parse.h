@@ -13,16 +13,18 @@ struct DatabaseHeader {
 };
 
 struct Trade {
-	char ticker[10];
-	char date[10];
+	char ticker[11];
+	char date[11];
 	int amount;
 	int price;
-	bool buy_side;
+	char side[5];
 };
 
+void print_trade(struct Trade *trade);
+int parse_trade(char *s, struct Trade *trade);
 int create_database_header(int fd, struct DatabaseHeader **header_out);
 int validate_database_header(int fd, struct DatabaseHeader **header_out);
-int serialize_header(int fd, struct DatabaseHeader *header);
+int serialize_database(int fd, struct DatabaseHeader *header, struct Trade *trades);
 int read_trades(int fd, struct DatabaseHeader *header, struct Trade **trades_out);
 
 #endif
